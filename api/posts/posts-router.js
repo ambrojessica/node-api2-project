@@ -1,6 +1,7 @@
 // implement your posts router here
 const e = require('express');
 const express = require('express');
+const { restart } = require('nodemon');
 const router = express.Router();
 const Post = require('./posts-model');
 
@@ -90,15 +91,49 @@ router.put('/:id', async (req, res) => {
 });
 
 // //delete
-// router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
 
-// })
+  try {
+    const deletedPost = await Post.findById(id);
+    if (!deletedPost) {
+      res.status(404).json({
+        message: 'The post with the specified ID does not exist'
+      });
+    } else {
+      res.json(deletedPost);
+      await Post.remove(id);
+    }
+  }
+  catch {
+    res.status(500).json({
+      message: 'The post could not be removed'
+    });
+  }
+});
 
 
 // //get comments
-// router.get('/:id/comments', (req, res) => {
+router.get('/:id/comments', async (req, res) => {
+  const { id } = req.params;
 
-// })
+  try {
+    const comment = await Post.findById(id);
+    if (!comment) {
+      res.status(404).json({
+        message: 'The post with the specified ID does not exist'
+      });
+    } else {
+      const status = await Post.findPostComments(id);
+      res.json(status);
+    }
+  }
+  catch {
+    res.status(500).json({
+      message: 'The comments information could not be retrieved'
+    });
+  }
+});
 
 module.exports = router;
 
