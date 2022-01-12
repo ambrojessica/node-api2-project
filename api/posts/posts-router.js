@@ -1,4 +1,5 @@
 // implement your posts router here
+const e = require('express');
 const express = require('express');
 const router = express.Router();
 const Post = require('./posts-model');
@@ -39,14 +40,54 @@ router.get('/:id', (req, res) => {
 });
 
 // //post
-// router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
+  const { title, contents } = req.body;
 
-// })
+  try {
+    if (!title || !contents) {
+      res.status(400).json({
+        message: 'Please provide title and contents for the post'
+      });
+    } else {
+      const dataPost = await Post.insert({ title, contents });
+      const createPost = await Post.findById(dataPost.id);
+      res.status(201).json(createPost);
+    }
+  }
+  catch {
+    res.status(500).json({
+      message: 'There was an error while saving the post to the database'
+    });
+  }
+});
 
 // //put
-// router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
+  const { title, contents } = req.body;
+  const { id } = req.params;
+  const editedPost = await Post.findById(id);
 
-// })
+  try {
+    if (!editedPost) {
+      res.status(404).json({
+        message: 'The post with the specified ID does not exist'
+      });
+    } else if (!title || !contents) {
+      res.status(400).json({
+        message: 'Please provide title and contents for the post'
+      });
+    } else {
+      await Post.update(id, { title, contents });
+      const updatedPost = await Post.findById(id);
+      res.status(200).json(updatedPost);
+    }
+  }
+  catch {
+    res.status(500).json({
+      message: 'The post information could not be modified'
+    });
+  }
+});
 
 // //delete
 // router.delete('/:id', (req, res) => {
